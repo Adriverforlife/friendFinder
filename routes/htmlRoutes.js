@@ -15,13 +15,10 @@ var router = require("express").Router();
 // In each of the below cases the user is shown an HTML page of content
 // ---------------------------------------------------------------------------
 
-router.get("/tables", function(req, res) {
-res.sendFile(path.join(__dirname, "../public/tables.html"));
+router.get("/survey", function(req, res) {
+res.sendFile(path.join(__dirname, "../public/survey.html"));
 });
 
-router.get("/reserve", function(req, res) {
-res.sendFile(path.join(__dirname, "../public/reserve.html"));
-});
 
 // If no matching route is found default to home
 router.get("*", function(req, res) {

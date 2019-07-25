@@ -4,7 +4,7 @@
 // ==============================================================================
 
 var express = require("express");
-var dbConnection = require("./data/connection.js")
+var friends = require("./data/connection.js")
 
 // ==============================================================================
 // EXPRESS CONFIGURATION
@@ -36,9 +36,12 @@ app.use(htmlRouter);
 // LISTENER
 // The below code effectively "starts" our server
 // =============================================================================
-dbConnection.connect(function (err) {
-    if (err) throw err;
-    app.listen(PORT, function() {
-        console.log("App listening on PORT: " + PORT);
-    });
-})
+// dbConnection.connect(function (err) {
+//     if (err) throw err;
+//     app.listen(PORT, function() {
+//         console.log("App listening on PORT: " + PORT);
+//     });
+// })
+app.listen(PORT, function() {
+    console.log("App listening on PORT " + PORT);
+  });
