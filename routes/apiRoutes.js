@@ -5,8 +5,7 @@
 // ===============================================================================
 
 var router = require("express").Router();
-var dbConnection = require("../data/connection.js");
-var Reservation = require("../data/reservation.js");
+var friends = require("../data/connection.js");
 
 
 // ===============================================================================
@@ -18,18 +17,12 @@ var Reservation = require("../data/reservation.js");
 // (ex: localhost:PORT/api/admin... they are shown a JSON of the data in the table)
 // ---------------------------------------------------------------------------
 
-router.get("/api/tables", function(req, res) {
-    dbConnection.query("SELECT * FROM reservation JOIN booth ON booth.booth_id = reservation.booth_id",
-        function (err, reservations) {
-            res.json(Reservation.fromDB(reservations));
-        });
+router.get("/api/survey", function(req, res) {
+    
 });
 
 router.get("/api/waitlist", function(req, res) {
-    dbConnection.query("SELECT * FROM reservation WHERE reservation.booth_id IS NULL",
-        function (err, reservations) {
-            res.json(Reservation.fromDB(reservations));
-        });
+    
 });
 
 // API POST Requests
@@ -44,28 +37,42 @@ router.post("/api/tables", function(req, res) {
     // Note the code here. Our "server" will respond to requests and let users know if they have a table or not.
     // It will do this by sending out the value "true" have a table
     // req.body is available since we're using the body parsing middleware
-    var reservation = Reservation.fromBody(req.body);
-    if (!reservation.isValid()) {
-        return res.status(400).json({error: "Reservation is missing fields."});
+console.log("~~~~~~~~~~~~~~~~~~~~~~~")
+var score=0
+for(var i=0;i<req.body.score.length;i++){
+score+=parseInt(req.body.score[i])
+}
+var surveytaker={ "name":req.body.customerName,
+"photo":req.body.photo,
+"total":score}
+console.log(surveytaker)
+console.log("~~~~~~~~~~~~~~~~~~~~~~~")
+var comparisonUsers=[]
+for(var i=0;i<friends.length;i++){
+
+var friendsScore=0
+for(var j=0;j<friends[i].scores.length;j++){
+    friendsScore+=parseInt(friends[i].scores[j])
+}
+comparisonUsers.push({
+    "name":friends[i].name,
+    "total":friendsScore,
+    "photo":friends[i].photo
+})
+
+}
+var closeMatch={}
+var difference= 50;
+for(var i=0;i<comparisonUsers.length;i++){
+    var newComparison=Math.abs(comparisonUsers[i].total-surveytaker.total)
+    if(newComparison<difference){
+        difference=newComparison
+        closeMatch=comparisonUsers[i]
     }
-    dbConnection.query("SELECT booth.booth_id FROM booth LEFT JOIN reservation on reservation.booth_id = booth.booth_id WHERE reservation.customer_id IS NULL LIMIT 1",
-        function (err, booth) {
-            console.log("booth", booth)
-            var newReservation = reservation.toDatabaseObject();
-            if (booth.length) {
-                newReservation.booth_id = booth[0].booth_id;
-            }
-            dbConnection.query("INSERT INTO reservation SET ?", newReservation, function (err, result) {
-                if (err) {
-                    console.log(err);
-                    return res.status(500).json({error: "Server Error."});
-                }
-                if (newReservation.booth_id) {
-                    return res.json(true);
-                }
-                return res.json(false);
-            })
-        });
+}
+console.log(closeMatch)
+return res.json(closeMatch);
+
 });
 
 // ---------------------------------------------------------------------------
@@ -73,9 +80,6 @@ router.post("/api/tables", function(req, res) {
 // Don't worry about it!
 
 router.post("/api/clear", function(req, res) {
-    dbConnection.query("DELETE FROM reservation", function (err, result) {
-        res.json({ ok: true });
-    });
 });
 
 module.exports = router;
